@@ -1,0 +1,37 @@
+PREFIX iter: <http://w3id.org/sparql-generate/iter/>
+PREFIX fn: <http://w3id.org/sparql-generate/fn/>
+PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX bs: <http://opensensingcity.emse.fr/ontologies/bikesharing/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> 
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX ts: <http://opensensingcity.emse.fr/ontologies/tempstatus>
+PREFIX rqg: <http://opensensingcity.emse.fr/sparql-generate/query/>
+
+GENERATE { 
+  ?bikeStationIRI a bs:BikeStation;
+    rdfs:label ?name;
+    geo:lat ?lat;
+    geo:long ?long;
+    bs:nbOfBikeStands ?nbBS;
+    ts:hasAvailability [
+        a ts:Availability, ?closeBikeStation;
+        bs:nbOfAvailableBikes ?nbAB;
+        bs:nbOfAvailableStands ?nbAS;
+        ts:time ?timestamp
+    ] .
+}
+SOURCE <http://opendata.paris.fr/api/records/1.0/search/?dataset=stations-velib-disponibilites-en-temps-reel&rows=1500> AS ?source
+ITERATOR iter:JSONPath(?source,"$.records.*") AS ?stations
+WHERE {
+  VALUES (?unbound) { (UNDEF) }
+    BIND( IRI(CONCAT("http://opensensingcity.emse.fr/paris/bikestations/",STR(fn:JSONPath(?stations,"$.fields.number")))) AS ?bikeStationIRI )
+    BIND( fn:JSONPath(?stations,"$.fields.name") AS ?name )
+    BIND( xsd:decimal(fn:JSONPath(?stations,"$.geometry.coordinates[0]")) AS ?long )
+    BIND( xsd:decimal(fn:JSONPath(?stations,"$.geometry.coordinates[1]")) AS ?lat )
+    BIND( xsd:integer(fn:JSONPath(?stations,"$.fields.bike_stands")) AS ?nbBS )
+    BIND( fn:JSONPath(?stations,"$.fields.status") AS ?avail )
+    BIND( xsd:dateTime(fn:JSONPath(?stations,"$.fields.last_update")) AS ?timestamp )
+    BIND( IF(?avail="CLOSED",?unbound,xsd:integer(fn:JSONPath(?stations,"$.fields.available_bike_stands"))) AS ?nbAS )
+    BIND( IF(?avail="CLOSED",?unbound,xsd:integer(fn:JSONPath(?stations,"$.fields.available_bikes"))) AS ?nbAB )
+    BIND( IF(?avail="CLOSED",bs:ClosedStation,?unbound) AS ?closeBikeStation )
+}
