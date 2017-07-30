@@ -1,1 +1,43 @@
+@prefix ldp:     <http://www.w3.org/ns/ldp#> .
+@prefix :     <http://opensensingcity.emse.fr/LDPDesignVocabulary/> .
+@prefix data:     <http://opensensingcity.emse.fr/LDPDesign/data/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix lgdo: <http://linkedgeodata.org/ontology/> .
 
+data:parkingContainerMap a :ContainerMap;
+    :slugTemplate "parking";
+    :containerType ldp:BasicContainer;
+    :resourceMap data:parkingResourceMap .
+
+data:parkingResourceMap a :ResourceMap;
+    :resourceQuery "{ ?resource a  lgdo:Parking .}";
+    :graphQuery "CONSTRUCT { ?_r ?p ?o . } WHERE {  ?_r ?p ?o;a lgdo:Parking .  }";
+    :linkToSource foaf:primaryTopic;
+    :dataSource data:DataSource1 .
+
+
+data:atmContainerMap a :ContainerMap;
+    :slugTemplate "atm";
+    :containerType ldp:BasicContainer;
+    :resourceMap data:atmResourceMap .
+
+data:atmResourceMap a :ResourceMap;
+    :resourceQuery "{ ?resource a ?type . FILTER (?type in (lgdo:ATM,lgdo:Atm)) }";
+    :graphQuery "CONSTRUCT { ?_r ?p ?o . } WHERE {  ?_r ?p ?o;a ?type.FILTER (?type in (lgdo:ATM,lgdo:Atm))  }";
+    :linkToSource foaf:primaryTopic;
+    :dataSource data:DataSource1 .
+
+data:bankContainerMap a :ContainerMap;
+    :slugTemplate "bank";
+    :containerType ldp:BasicContainer;
+    :resourceMap data:bankResourceMap .
+
+data:bankResourceMap a :ResourceMap;
+    :resourceQuery "{ ?resource a  lgdo:Bank .}";
+    :graphQuery "CONSTRUCT { ?_r ?p ?o . } WHERE {  ?_r ?p ?o;a lgdo:Bank.  }";
+    :linkToSource foaf:primaryTopic;
+    :dataSource data:DataSource1 .
+
+data:DataSource1 a :DataSource;
+    :location "https://raw.githubusercontent.com/noorbakerally/ISWC2017Demo/master/ParisGeo.ttl";
